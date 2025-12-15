@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quản lý Kho - Hải Võ</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">K</div>
+      <div>
+        <div class="title">Quản lý Kho</div>
+        <div class="sub">IN/OUT · OEM · Báo giá · Google Sheet</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn" id="btnRefresh">Làm mới</button>
+      <button class="btn btn-primary" id="btnSnapshot">Chụp TonKho</button>
+      <button class="btn btn-primary" id="btnOpenQuote">In báo giá</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT: form nhập -->
+    <section class="card">
+      <div class="card-title">Nhập sản phẩm</div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Tên sản phẩm *</label>
+          <input id="fTen" placeholder="VD: Lọc dầu Toyota..." />
+        </div>
+        <div class="field">
+          <label>Ảnh (URL)</label>
+          <input id="fAnh" placeholder="https://..." />
+        </div>
+
+        <div class="field">
+          <label>Loại</label>
+          <input id="fLoai" placeholder="VD: Lọc / Dầu / Phụ tùng..." />
+        </div>
+        <div class="field">
+          <label>Thương hiệu</label>
+          <input id="fThuongHieu" placeholder="VD: Toyota / Bosch..." />
+        </div>
+
+        <div class="field">
+          <label>Giá</label>
+          <input id="fGia" type="number" min="0" step="1" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>Đơn vị</label>
+          <input id="fDonVi" placeholder="cái / bộ / lít..." />
+        </div>
+
+        <div class="field">
+          <label>Tồn ban đầu</label>
+          <input id="fTon" type="number" min="0" step="1" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>OEM (mã nhóm thay thế)</label>
+          <input id="fOem" placeholder="VD: OEM-ABC123" />
+        </div>
+
+        <div class="field span2">
+          <label>Ghi chú</label>
+          <input id="fGhiChu" placeholder="..." />
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">Preview ảnh</div>
+        <div class="preview-box">
+          <img id="imgPreview" alt="preview" />
+          <div class="muted" id="imgHint">Nhập URL ảnh để xem preview.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary" id="btnAdd">Thêm sản phẩm</button>
+        <button class="btn" id="btnReset">Xóa form</button>
+      </div>
+
+      <div class="notice" id="notice"></div>
+    </section>
+
+    <!-- RIGHT: list + filter -->
+    <section class="card">
+      <div class="card-title">Danh sách sản phẩm</div>
+
+      <div class="toolbar">
+        <input id="qSearch" placeholder="Tìm theo tên / OEM / thương hiệu..." />
+        <button class="btn" id="btnClearFilters">Bỏ lọc</button>
+      </div>
+
+      <div class="filters">
+        <div class="filter-block">
+          <div class="filter-label">Lọc theo Loại</div>
+          <div class="chips" id="chipsLoai"></div>
+        </div>
+        <div class="filter-block">
+          <div class="filter-label">Lọc theo Thương hiệu</div>
+          <div class="chips" id="chipsBrand"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="w-40">Chọn</th>
+              <th>Ảnh</th>
+              <th>Tên</th>
+              <th>Loại</th>
+              <th>Thương hiệu</th>
+              <th class="w-90">Tồn</th>
+              <th class="w-120">Giá</th>
+              <th class="w-120">Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="tbProducts"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal" id="modalDetail">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">Chi tiết sản phẩm</div>
+        <button class="btn" id="btnCloseDetail">Đóng</button>
+      </div>
+
+      <div class="detail">
+        <div class="detail-left">
+          <img id="dImg" alt="detail" />
+        </div>
+
+        <div class="detail-right">
+          <div class="detail-name" id="dTen"></div>
+          <div class="detail-meta" id="dMeta"></div>
+
+          <div class="grid2">
+            <div class="field">
+              <label>Giá</label>
+              <input id="dGia" type="number" min="0" step="1"/>
+            </div>
+            <div class="field">
+              <label>Đơn vị</label>
+              <input id="dDonVi"/>
+            </div>
+            <div class="field">
+              <label>Loại</label>
+              <input id="dLoai"/>
+            </div>
+            <div class="field">
+              <label>Thương hiệu</label>
+              <input id="dThuongHieu"/>
+            </div>
+            <div class="field">
+              <label>OEM</label>
+              <input id="dOem"/>
+            </div>
+            <div class="field">
+              <label>Ảnh (URL)</label>
+              <input id="dAnh"/>
+            </div>
+            <div class="field span2">
+              <label>Ghi chú</label>
+              <input id="dGhiChu"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn btn-primary" id="btnSaveDetail">Lưu thay đổi</button>
+            <button class="btn btn-danger" id="btnDelete">Xóa sản phẩm</button>
+          </div>
+
+          <hr/>
+
+          <div class="io-block">
+            <div class="io-title">Nhập / Xuất (IN/OUT)</div>
+            <div class="row">
+              <select id="ioType">
+                <option value="IN">IN (Nhập)</option>
+                <option value="OUT">OUT (Xuất)</option>
+              </select>
+              <input id="ioQty" type="number" min="1" step="1" placeholder="Số lượng" />
+              <input id="ioNote" placeholder="Ghi chú (tuỳ chọn)" />
+              <button class="btn btn-primary" id="btnDoIO">Thực hiện</button>
+            </div>
+
+            <div class="muted" id="ioTonInfo"></div>
+          </div>
+
+          <hr/>
+
+          <div class="oem-block">
+            <div class="row row-between">
+              <div>
+                <div class="io-title">OEM thay thế</div>
+                <div class="muted">Gợi ý các sản phẩm có cùng OEM. Chọn “thay thế chính”.</div>
+              </div>
+              <button class="btn" id="btnOpenOemPopup">Xem gợi ý thay thế</button>
+            </div>
+
+            <div class="muted" id="oemMainInfo"></div>
+          </div>
+
+          <hr/>
+
+          <div class="history">
+            <div class="io-title">Lịch sử nhập/xuất</div>
+            <div class="history-list" id="historyList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OEM POPUP -->
+  <div class="modal" id="modalOem">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">Gợi ý sản phẩm thay thế (cùng OEM)</div>
+        <button class="btn" id="btnCloseOem">Đóng</button>
+      </div>
+      <div class="modal-body">
+        <div class="muted" id="oemPopupHint"></div>
+        <div class="oem-list" id="oemList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUOTE MODAL -->
+  <div class="modal" id="modalQuote">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">In báo giá</div>
+        <button class="btn" id="btnCloseQuote">Đóng</button>
+      </div>
+      <div class="modal-body">
+        <div class="muted">Chọn sản phẩm ở danh sách (checkbox). Nhập số lượng báo giá cho từng món.</div>
+        <div id="quoteItems"></div>
+        <div class="row">
+          <button class="btn btn-primary" id="btnPrintQuote">In + Lưu BaoGia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-oval">
+      <div class="marquee">
+        <div class="marquee-inner">© 2025 HẢI VÕ — © 2025 HẢI VÕ — © 2025 HẢI VÕ — © 2025 HẢI VÕ — </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
